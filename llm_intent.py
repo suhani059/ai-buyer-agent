@@ -1,38 +1,49 @@
 import os
+import re
 import anthropic
 from dotenv import load_dotenv
+
+
+# ============================================================
+# LOAD ENVIRONMENT VARIABLES
+# ============================================================
 
 load_dotenv()
 
 api_key = os.getenv("ANTHROPIC_API_KEY")
 
-if not api_key:
-    print("API key NOT found!")
-    raise SystemExit
 
-client = anthropic.Anthropic(api_key=api_key)
+# ============================================================
+# CREATE CLAUDE CLIENT
+# ============================================================
 
-print("Claude client created successfully!")
+client = None
 
-import re
+if api_key:
+    client = anthropic.Anthropic(api_key=api_key)
 
+
+# ============================================================
+# RULE-BASED FALLBACK
+# ============================================================
 
 def fallback_parse_intent(user_text):
     """
-    Extracts a basic shopping intent without using an LLM.
+    Extract shopping intent without using an LLM.
 
-    Returns:
-        dict containing category, tags, and maximum price.
+    This is our fallback system in case Claude is
+    unavailable or there are no API credits.
     """
 
     text = user_text.lower()
 
-    # -----------------------------
-    # Find the budget
-    # -----------------------------
+    # --------------------------------------------------------
+    # Find budget
+    # --------------------------------------------------------
 
     price_match = re.search(
-        r"(?:under|below|within|budget(?:\s+of)?|maximum|max)\s*[₹rs.]?\s*(\d+(?:,\d+)?)",
+        r"(?:under|below|within|budget(?:\s+of)?|maximum|max)"
+        r"\s*[₹rs.]?\s*(\d+(?:,\d+)?)",
         text
     )
 
@@ -41,37 +52,102 @@ def fallback_parse_intent(user_text):
     else:
         max_price = None
 
-    # -----------------------------
-    # Find the category
-    # -----------------------------
+    # --------------------------------------------------------
+    # Find category and tags
+    # --------------------------------------------------------
 
     category = None
     tags = []
 
-    if "shoe" in text or "running" in text:
+    # SHOES
+    if "shoe" in text or "running" in text or "sneaker" in text:
+
         category = "shoes"
-        tags.append("running" if "running" in text else "shoes")
 
-    elif "sofa" in text or "furniture" in text:
+        if "running" in text:
+            tags.append("running")
+
+        if "sneaker" in text:
+            tags.append("sneakers")
+
+        if "casual" in text:
+            tags.append("casual")
+
+        if "formal" in text:
+            tags.append("formal")
+
+        if "sports" in text:
+            tags.append("sports")
+
+        if not tags:
+            tags.append("shoes")
+
+    # FURNITURE
+    elif (
+        "sofa" in text
+        or "furniture" in text
+        or "chair" in text
+        or "table" in text
+        or "bed" in text
+    ):
+
         category = "furniture"
-        tags.append("sofa" if "sofa" in text else "furniture")
 
+        if "sofa" in text:
+            tags.append("sofa")
+
+        if "chair" in text:
+            tags.append("chair")
+
+        if "table" in text:
+            tags.append("table")
+
+        if "bed" in text:
+            tags.append("bed")
+
+        if not tags:
+            tags.append("furniture")
+
+    # ELECTRONICS
     elif (
         "headphone" in text
         or "earphone" in text
+        or "earbud" in text
+        or "phone" in text
+        or "smartphone" in text
+        or "laptop" in text
+        or "tablet" in text
         or "electronics" in text
     ):
+
         category = "electronics"
 
         if "headphone" in text:
             tags.append("headphones")
 
+        if "earphone" in text:
+            tags.append("earphones")
+
+        if "earbud" in text:
+            tags.append("earbuds")
+
+        if "phone" in text or "smartphone" in text:
+            tags.append("smartphone")
+
+        if "laptop" in text:
+            tags.append("laptop")
+
+        if "tablet" in text:
+            tags.append("tablet")
+
         if "wireless" in text:
             tags.append("wireless")
 
-    elif "phone" in text or "smartphone" in text:
-        category = "electronics"
-        tags.append("smartphone")
+        if "gaming" in text:
+            tags.append("gaming")
+
+        if not tags:
+            tags.append("electronics")
 
     return {
         "category": category,
@@ -80,22 +156,15 @@ def fallback_parse_intent(user_text):
     }
 
 
-if __name__ == "__main__":
+# ============================================================
+# CLAUDE INTENT PARSER
+# ============================================================
 
-    request = "I need running shoes under 3000"
-
-    result = fallback_parse_intent(request)
-
-    print("User request:")
-    print(request)
-
-    print("\nParsed intent:")
-    print(result)
-
-def ask_claude(user_text):
+def parse_with_claude(user_text):
     """
-    Sends the user's shopping request to Claude
-    and returns Claude's response.
+    Uses Claude to understand the user's shopping request.
+
+    Returns a structured intent.
     """
 
     response = client.messages.create(
@@ -105,56 +174,91 @@ def ask_claude(user_text):
             {
                 "role": "user",
                 "content": f"""
-Understand this shopping request:
+You are a shopping intent parser.
 
-{user_text}
+Understand the following user request:
 
-Tell me what product the user wants
-and what their maximum budget is.
+"{user_text}"
+
+Return ONLY valid JSON in this exact format:
+
+{{
+    "category": "shoes",
+    "tags": ["running"],
+    "max_price": 3000
+}}
+
+Rules:
+- category should be a simple product category.
+- tags should contain useful product characteristics.
+- max_price should be a number.
+- If the user does not provide a budget, use null.
+- Do not include explanations.
 """
             }
         ]
     )
 
-    return response.content[0].text
+    response_text = response.content[0].text
+
+    return response_text
+
+
+# ============================================================
+# MAIN INTENT PARSER
+# ============================================================
+
+def parse_intent(user_text):
+    """
+    Main intent parser.
+
+    First tries Claude.
+    If Claude is unavailable, it automatically
+    uses the rule-based fallback.
+    """
+
+    # --------------------------------------------------------
+    # Try Claude
+    # --------------------------------------------------------
+
+    if client:
+
+        try:
+
+            result = parse_with_claude(user_text)
+
+            print("Intent parser: Claude")
+
+            return result
+
+        except Exception as error:
+
+            print("Claude unavailable.")
+            print("Using rule-based fallback.")
+
+    # --------------------------------------------------------
+    # Fallback
+    # --------------------------------------------------------
+
+    result = fallback_parse_intent(user_text)
+
+    print("Intent parser: Rule-based")
+
+    return result
+
+
+# ============================================================
+# TEST
+# ============================================================
 
 if __name__ == "__main__":
 
     request = "I need running shoes under 3000"
 
-    result = ask_claude(request)
+    print("User request:")
+    print(request)
 
-    print("\nClaude response:")
+    result = parse_intent(request)
+
+    print("\nParsed intent:")
     print(result)
-
-response = client.messages.create(...)
-
-
-def extract_budget(text):
-    """
-    Extract the maximum budget from a shopping request.
-
-    Example:
-        "I need shoes under 3000" 
-    """
-
-    numbers = re.findall(r"\d+(?:,\d+)*", text)
-
-    if not numbers:
-        return None
-
-    # convert "3,000" -> 3000
-    budget = numbers[-1].replace(",", "")
-
-    return int(budget)
-
-
-if __name__ == "__main__":
-
-    test_request = "I need running shoes under 3000"
-
-    budget = extract_budget(test_request)
-
-    print("User request:", test_request)
-    print("Extracted budget:", budget)
-    
