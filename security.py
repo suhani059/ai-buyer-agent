@@ -1,55 +1,105 @@
 import re
-INJECTION_PATTERNS =[
-    r"ignore (all |any |the )?previous instructions",
-    r"ignore (all |any |the )?instructions",
-    r"system override",
-    r"override (the )?system",
-    r"buy this immedieately",
-    r"without confirmation",
-    r"do not ask for confirmation",
-    r"ignore the user's budget",
-]
+
+
+# --------------------------------------------------
+# PROMPT INJECTION DETECTION
+# --------------------------------------------------
 
 def detect_prompt_injection(text):
+
+    if not text:
+        return False
+
+    text = str(text).lower()
+
+    suspicious_patterns = [
+        "ignore previous instructions",
+        "ignore all previous instructions",
+        "ignore the previous instruction",
+        "disregard previous instructions",
+        "forget previous instructions",
+        "system prompt",
+        "developer message",
+        "reveal your instructions",
+        "reveal the system prompt",
+        "show me your prompt",
+        "override your instructions",
+        "bypass security",
+        "bypass safety",
+        "act as system",
+        "you are now the system",
+        "execute this instruction",
+        "send payment",
+        "make payment",
+        "buy immediately",
+    ]
+
+    for pattern in suspicious_patterns:
+
+        if pattern in text:
+            return True
+
+    return False
+
+
+# --------------------------------------------------
+# SANITIZE PRODUCT DATA
+# --------------------------------------------------
+
+def sanitize_product(product):
+
     """
-    Checks untrusted text for common prompt-injection patterns.
+    Product information comes from external sources,
+    so we treat it as untrusted data.
 
-    Returns:
-        tuple: (is_injection, matched_pattern)
+    We do NOT allow product text to become an
+    instruction for our AI agent.
     """
 
-    text = text.lower()
+    safe_product = product.copy()
 
-    for pattern in INJECTION_PATTERNS:
-        if re.search(pattern, text):
-            return True, pattern
+    text_fields = [
+        "name",
+        "brand",
+        "description"
+    ]
 
-    return False, None
+    for field in text_fields:
+
+        value = safe_product.get(field)
+
+        if value and detect_prompt_injection(value):
+
+            safe_product[field] = "[⚠️ SUSPICIOUS CONTENT REMOVED]"
+
+            safe_product["security_flag"] = True
+
+    return safe_product
 
 
-def screen_product(product):
+# --------------------------------------------------
+# VALIDATE PRODUCT
+# --------------------------------------------------
+
+def validate_product(product):
+
     """
-    Checks a product description for prompt injection.
-
-    Returns:
-        tuple: (is_safe, reason)
+    Checks whether a product contains suspicious
+    instructions before the agent uses it.
     """
 
-    is_injection, pattern = detect_prompt_injection(product["description"])
+    fields_to_check = [
+        "name",
+        "brand",
+        "description"
+    ]
 
-    if is_injection:
-        return False, f"Prompt injection detected: {pattern}"
+    for field in fields_to_check:
 
-    return True, "Product description passed security screening."
+        value = product.get(field)
 
-if __name__ == "__main__":
+        if value and detect_prompt_injection(value):
 
-    from catalog import PRODUCT_CATALOG
+            return False
 
-    for product in PRODUCT_CATALOG:
-
-        safe, reason = screen_product(product)
-
-        print("\nProduct:", product["name"])
-        print("Safe:", safe)
-        print("Reason:", reason)
+    return True

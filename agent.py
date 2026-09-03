@@ -1,103 +1,160 @@
-from catalog import PRODUCT_CATALOG
-from security import screen_product
+# =========================================================
+# AI BUYER AGENT
+# Security + Explicit Confirmation + Razorpay Test Order
+# =========================================================
+
+from security import detect_prompt_injection
+from razorpay_payment import create_test_order
 
 
-class BuyerAgent:
+# ---------------------------------------------------------
+# CONFIRMATION FUNCTION
+# ---------------------------------------------------------
 
-    def __init__(self):
-        # Store the product catalog inside the agent
-        self.catalog = PRODUCT_CATALOG
+def request_confirmation(product):
 
-    def search_products(self, category, max_price):
-        """
-        Finds products that:
-        1. Are safe from prompt injection
-        2. Match the requested category
-        3. Are within the user's maximum budget
-        """
+    print("\n" + "=" * 50)
+    print("🛒 PURCHASE CONFIRMATION")
+    print("=" * 50)
 
-        safe_products = []
+    print(f"Product  : {product.get('name', 'Unknown')}")
+    print(f"Platform : {product.get('platform', 'Unknown')}")
+    print(f"Price    : ₹{product.get('offer_price', 'N/A')}")
 
-        for product in self.catalog:
+    print("\n⚠️ No payment/order will be created without your confirmation.")
 
-            # --------------------------------
-            # 1. SECURITY CHECK
-            # --------------------------------
-            is_safe, reason = screen_product(product)
+    while True:
 
-            if not is_safe:
-                print(
-                    f"REJECTED: {product['name']} "
-                    f"because {reason}"
-                )
-                continue
+        confirmation = input(
+            "\nDo you want to proceed with this purchase? (yes/no): "
+        ).strip().lower()
 
-            # --------------------------------
-            # 2. CATEGORY CHECK
-            # --------------------------------
-            if product["category"] != category:
-                continue
+        if confirmation in ["yes", "y"]:
+            print("\n✅ User explicitly confirmed the purchase.")
+            return True
 
-            # --------------------------------
-            # 3. HARD BUDGET CHECK
-            # --------------------------------
-            if product["price"] > max_price:
-                continue
+        elif confirmation in ["no", "n"]:
+            print("\n❌ Purchase cancelled by user.")
+            return False
 
-            # Product passed all checks
-            safe_products.append(product)
+        else:
+            print("Please enter yes or no.")
 
-        return safe_products
 
-    def choose_product(self, products):
-        """
-        Selects the best product from the safe candidates.
+# ---------------------------------------------------------
+# PAYMENT GATE
+# ---------------------------------------------------------
 
-        For now, the cheapest product is selected.
-        Later, we can make this smarter using the LLM.
-        """
+def payment_gate(product):
 
-        # No products available
-        if not products:
-            return None
+    # -----------------------------------------------------
+    # SECURITY CHECK
+    # -----------------------------------------------------
 
-        # Select the cheapest product
-        best_product = min(
-            products,
-            key=lambda product: product["price"]
+    fields_to_check = [
+        "name",
+        "brand",
+        "description"
+    ]
+
+    for field in fields_to_check:
+
+        value = str(product.get(field, ""))
+
+        if detect_prompt_injection(value):
+
+            print("\n🚨 SECURITY BLOCK")
+            print(
+                f"Suspicious instructions detected "
+                f"in product {field}."
+            )
+
+            print("❌ Purchase blocked.")
+
+            return False
+
+
+    # -----------------------------------------------------
+    # EXPLICIT USER CONFIRMATION
+    # -----------------------------------------------------
+
+    confirmed = request_confirmation(product)
+
+    if not confirmed:
+        return False
+
+
+    # -----------------------------------------------------
+    # PRICE VALIDATION
+    # -----------------------------------------------------
+
+    amount = product.get("offer_price")
+
+    try:
+        amount = float(
+            str(amount)
+            .replace("₹", "")
+            .replace(",", "")
         )
 
-        return best_product
+    except (ValueError, TypeError):
+
+        print("\n❌ Invalid product price.")
+        return False
 
 
-# --------------------------------
-# TEST THE BUYER AGENT
-# --------------------------------
+    if amount <= 0:
+
+        print("\n❌ Invalid payment amount.")
+        return False
+
+
+    # -----------------------------------------------------
+    # RAZORPAY TEST ORDER
+    # -----------------------------------------------------
+
+    print("\n💳 Creating Razorpay Test Mode order...")
+
+    order = create_test_order(amount)
+
+    if not order:
+
+        print("\n❌ Payment order could not be created.")
+
+        return False
+
+
+    # -----------------------------------------------------
+    # SUCCESS
+    # -----------------------------------------------------
+
+    print("\n" + "=" * 50)
+    print("🎉 TEST ORDER CREATED")
+    print("=" * 50)
+
+    print(f"Order ID : {order['id']}")
+    print(f"Amount   : ₹{amount}")
+    print("Mode     : Razorpay TEST MODE 🧪")
+
+    print("\n💡 No real money has been charged.")
+
+    return True
+
+
+# ---------------------------------------------------------
+# TEST
+# ---------------------------------------------------------
 
 if __name__ == "__main__":
 
-    # Create our agent
-    agent = BuyerAgent()
+    test_product = {
+        "name": "Wireless Headphones",
+        "brand": "Demo Brand",
+        "description": "Wireless headphones",
+        "platform": "Flipkart",
+        "offer_price": 1499,
+        "mrp": 2499,
+        "rating": 4.4
+    }
 
-    # Search for shoes under ₹3000
-    products = agent.search_products(
-        category="shoes",
-        max_price=3000
-    )
-
-    # Choose the best product
-    selected_product = agent.choose_product(products)
-
-    print("\nSELECTED PRODUCT:")
-
-    if selected_product:
-
-        print(
-            selected_product["name"],
-            "- ₹",
-            selected_product["price"]
-        )
-
-    else:
-
-        print("No safe product found.")
+    payment_gate(test_product)

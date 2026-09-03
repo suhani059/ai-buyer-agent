@@ -328,12 +328,13 @@ def fallback_parse_intent(user_text):
 
     if category != "general":
 
-        search_query = " ".join(tags)
+    # Keep the complete cleaned product description
+    # so brands and specific product terms are not lost.
+     search_query = search_text
 
-        # If no useful tags were detected,
-        # search using the category itself.
-        if not search_query:
-            search_query = category
+    # If nothing useful remains, use the category.
+    if not search_query:
+        search_query = category
 
     else:
 
