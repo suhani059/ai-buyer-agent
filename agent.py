@@ -3,6 +3,11 @@
 # Security + Explicit Confirmation + Razorpay Test Order
 # =========================================================
 
+from audit_log import(
+    log_confirmation,
+    log_payment,
+    log_security
+)
 from security import detect_prompt_injection
 from razorpay_payment import create_test_order
 
