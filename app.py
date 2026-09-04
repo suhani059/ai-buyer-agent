@@ -424,7 +424,6 @@ HTML = """
 
         }
 
-
         /* ==================================================
            AI INTENT
            ================================================== */
@@ -974,8 +973,8 @@ HTML = """
          STATUS
          ==================================================== -->
 
-    <div id="status"></div>
 
+    <div id="status"></div>
 
     <!-- ====================================================
          AI INTENT
@@ -1285,8 +1284,6 @@ function searchProducts() {
         .getElementById("status")
         .innerText =
             "🧠 Understanding your request...";
-
-
     fetch(
         "/search",
         {
@@ -1311,8 +1308,11 @@ function searchProducts() {
 
 
     .then(
-        response =>
-            response.json()
+        response => {
+
+            return response.json();
+
+        }
     )
 
 
@@ -2459,6 +2459,17 @@ def verify_payment():
 
 if __name__ == "__main__":
 
+    # Local development + Render-compatible fallback.
+    # Gunicorn remains the recommended Render start command.
+    port = int(
+        os.environ.get(
+            "PORT",
+            5000
+        )
+    )
+
     app.run(
+        host="0.0.0.0",
+        port=port,
         debug=True
     )

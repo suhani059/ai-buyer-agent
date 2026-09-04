@@ -11,3 +11,29 @@
 {"timestamp": "2026-09-04T14:09:20.262840", "event_type": "security_check", "details": {"product": "Ultra Running Shoes", "platform": "Demo Catalog", "status": "SAFE"}}
 {"timestamp": "2026-09-04T14:11:52.485001", "event_type": "user_confirmation", "details": {"product": "Ultra Running Shoes", "price": 9999, "confirmed": false}}
 {"timestamp": "2026-09-04T14:15:01.016671", "event_type": "security_check", "details": {"product": "Ultra Running Shoes", "platform": "Demo Catalog", "status": "BLOCKED"}}
+{"timestamp": "2026-09-04T14:21:10.443288", "event_type": "intent_parsed", "details": {"user_input": "nike sneakers under 5000", "intent": {"category": "shoes", "tags": ["sneakers"], "max_price": 5000, "search_query": "nike sneakers"}}}
+{"timestamp": "2026-09-04T14:21:46.213294", "event_type": "recommendation", "details": {"product": "Premium Running Shoes", "platform": "Demo Catalog", "price": 4999, "rating": 4.2}}
+{"timestamp": "2026-09-04T14:21:46.214402", "event_type": "security_check", "details": {"product": "Premium Running Shoes", "platform": "Demo Catalog", "status": "SAFE"}}
+{"timestamp": "2026-09-04T14:21:48.370978", "event_type": "user_confirmation", "details": {"product": "Premium Running Shoes", "price": 4999, "confirmed": true}}
+{"timestamp": "2026-09-04T14:21:48.978692", "event_type": "payment", "details": {"order_id": "order_TXtsLHS9tELypX", "amount": 4999.0, "status": "TEST_ORDER_CREATED"}}
+{"timestamp": "2026-09-04T15:33:28.017187", "event_type": "intent_parsed", "details": {"user_input": "running shoes under 5000", "intent": {"category": "shoes", "tags": ["running"], "max_price": 5000, "search_query": "running shoes"}}}
+{"timestamp": "2026-09-04T15:33:43.229209", "event_type": "security_check", "details": {"product": "Premium Running Shoes", "platform": "Demo Catalog", "status": "SAFE"}}
+{"timestamp": "2026-09-04T15:33:43.231768", "event_type": "user_confirmation", "details": {"product": "Premium Running Shoes", "price": 4999, "confirmed": true}}
+{"timestamp": "2026-09-04T15:33:44.302029", "event_type": "payment", "details": {"order_id": "order_TXv6JJeKxtNqmn", "amount": 4999.0, "status": "TEST_ORDER_CREATED"}}
+{"timestamp": "2026-09-04T15:36:30.654488", "event_type": "intent_parsed", "details": {"user_input": "headphones", "intent": {"category": "electronics", "tags": ["headphones", "smartphone"], "max_price": null, "search_query": "headphones"}}}
+{"timestamp": "2026-09-04T15:36:38.540388", "event_type": "intent_parsed", "details": {"user_input": "headphones", "intent": {"category": "electronics", "tags": ["headphones", "smartphone"], "max_price": null, "search_query": "headphones"}}}
+{"timestamp": "2026-09-04T15:51:53.792997", "event_type": "intent_parsed", "details": {"user_input": "running shoes under 5000", "intent": {"category": "shoes", "tags": ["running"], "max_price": 5000, "search_query": "running shoes"}}}
+{"timestamp": "2026-09-04T15:53:27.881064", "event_type": "security_check", "details": {"product": "Premium Running Shoes", "platform": "Demo Catalog", "status": "SAFE"}}
+{"timestamp": "2026-09-04T15:53:27.882376", "event_type": "user_confirmation", "details": {"product": "Premium Running Shoes", "price": 4999, "confirmed": true}}
+{"timestamp": "2026-09-04T15:53:28.580444", "event_type": "payment", "details": {"order_id": "order_TXvRAJhUTRC7Me", "amount": 4999.0, "status": "TEST_ORDER_CREATED"}}
+{"timestamp": "2026-09-04T15:54:01.368673", "event_type": "intent_parsed", "details": {"user_input": "Ultra Running Shoes", "intent": {"category": "shoes", "tags": ["running"], "max_price": null, "search_query": "ultra running shoes"}}}
+{"timestamp": "2026-09-04T16:33:15.993878", "event_type": "intent_parsed", "details": {"user_input": "ultra running shoes", "intent": {"category": "shoes", "tags": ["running"], "max_price": null, "search_query": "ultra running shoes"}}}
+{"timestamp": "2026-09-04T16:33:31.946028", "event_type": "security_check", "details": {"product": "Ultra Running Shoes", "platform": "Demo Catalog", "status": "BLOCKED"}}
+{"timestamp": "2026-09-04T16:33:34.313735", "event_type": "security_check", "details": {"product": "Ultra Running Shoes", "platform": "Demo Catalog", "status": "BLOCKED"}}
+{"timestamp": "2026-09-04T16:34:19.516488", "event_type": "intent_parsed", "details": {"user_input": "running shoes under ₹3000", "intent": {"category": "shoes", "tags": ["running"], "max_price": 3000, "search_query": "running shoes"}}}
+{"timestamp": "2026-09-04T16:35:43.426806", "event_type": "security_check", "details": {"product": "Everyday Running Shoes", "platform": "Demo Catalog", "status": "SAFE"}}
+{"timestamp": "2026-09-04T16:35:43.428860", "event_type": "user_confirmation", "details": {"product": "Everyday Running Shoes", "price": 2499, "confirmed": true}}
+{"timestamp": "2026-09-04T16:35:43.830526", "event_type": "payment", "details": {"order_id": "order_TXw9ndZzvWcrek", "amount": 2499.0, "status": "TEST_ORDER_CREATED"}}
+{"timestamp": "2026-09-04T20:02:52.089656", "event_type": "intent_parsed", "details": {"user_input": "running shoes under ₹3000", "intent": {"category": "shoes", "tags": ["running"], "max_price": 3000, "search_query": "running shoes"}}}
+{"timestamp": "2026-09-04T20:03:20.442223", "event_type": "intent_parsed", "details": {"user_input": "running shoes under ₹3000", "intent": {"category": "shoes", "tags": ["running"], "max_price": 3000, "search_query": "running shoes"}}}
+{"timestamp": "2026-09-04T20:09:32.124475", "event_type": "intent_parsed", "details": {"user_input": "running shoes under 3000", "intent": {"category": "shoes", "tags": ["running"], "max_price": 3000, "search_query": "running shoes"}}}
