@@ -32,19 +32,28 @@ def request_confirmation(product):
 
     while True:
 
-        answer = input("\nDo you want to proceed? (yes/no): ").strip().lower()
+        answer = input(
+            "\nDo you want to proceed? (yes/no): "
+        ).strip().lower()
 
         if answer in ["yes", "y"]:
+
             log_confirmation(product, True)
+
             print("✅ Purchase confirmed.")
+
             return True
 
         elif answer in ["no", "n"]:
+
             log_confirmation(product, False)
+
             print("❌ Purchase cancelled.")
+
             return False
 
         else:
+
             print("Please enter yes or no.")
 
 
@@ -73,15 +82,26 @@ def payment_gate(product):
         if value and detect_prompt_injection(value):
 
             print("\n🚨 SECURITY THREAT DETECTED!")
-            print(f"Suspicious content found in: {field}")
 
-            log_security(product, "BLOCKED")
+            print(
+                f"Suspicious content found in: {field}"
+            )
 
-            print("❌ Purchase blocked for security reasons.")
+            log_security(
+                product,
+                "BLOCKED"
+            )
+
+            print(
+                "❌ Purchase blocked for security reasons."
+            )
 
             return False
 
-    log_security(product, "SAFE")
+    log_security(
+        product,
+        "SAFE"
+    )
 
     print("✅ Security check passed.")
 
@@ -92,7 +112,11 @@ def payment_gate(product):
     confirmed = request_confirmation(product)
 
     if not confirmed:
-        print("\n🛑 Payment flow stopped by user.")
+
+        print(
+            "\n🛑 Payment flow stopped by user."
+        )
+
         return False
 
     # --------------------------------------------------------
@@ -101,22 +125,33 @@ def payment_gate(product):
 
     try:
 
-        amount = float(product.get("offer_price"))
+        amount = float(
+            product.get("offer_price")
+        )
 
         if amount <= 0:
-            print("\n❌ Invalid product price.")
+
+            print(
+                "\n❌ Invalid product price."
+            )
+
             return False
 
     except (TypeError, ValueError):
 
-        print("\n❌ Invalid product price.")
+        print(
+            "\n❌ Invalid product price."
+        )
+
         return False
 
     # --------------------------------------------------------
     # 4. CREATE RAZORPAY TEST ORDER
     # --------------------------------------------------------
 
-    print("\n💳 Creating Razorpay Test Mode order...")
+    print(
+        "\n💳 Creating Razorpay Test Mode order..."
+    )
 
     order = create_test_order(amount)
 
@@ -128,7 +163,9 @@ def payment_gate(product):
             status="ORDER_CREATION_FAILED"
         )
 
-        print("\n❌ Payment order could not be created.")
+        print(
+            "\n❌ Payment order could not be created."
+        )
 
         return False
 
@@ -136,7 +173,10 @@ def payment_gate(product):
     # 5. LOG PAYMENT ORDER
     # --------------------------------------------------------
 
-    order_id = order.get("id", "Unknown")
+    order_id = order.get(
+        "id",
+        "Unknown"
+    )
 
     log_payment(
         order_id=order_id,
@@ -145,13 +185,29 @@ def payment_gate(product):
     )
 
     print("\n" + "=" * 50)
-    print("✅ RAZORPAY TEST ORDER CREATED")
+
+    print(
+        "✅ RAZORPAY TEST ORDER CREATED"
+    )
+
     print("=" * 50)
 
-    print(f"Order ID : {order_id}")
-    print(f"Amount   : ₹{amount}")
-    print("Mode     : TEST")
-    print("💡 No real money has been charged.")
+    print(
+        f"Order ID : {order_id}"
+    )
+
+    print(
+        f"Amount   : ₹{amount}"
+    )
+
+    print(
+        "Mode     : TEST"
+    )
+
+    print(
+        "💡 No real money has been charged."
+    )
+
     print("=" * 50)
 
     return True
@@ -164,12 +220,19 @@ def payment_gate(product):
 if __name__ == "__main__":
 
     test_product = {
+
         "name": "Wireless Headphones",
+
         "brand": "Demo Brand",
+
         "description": "Wireless headphones",
+
         "platform": "Flipkart",
+
         "offer_price": 1499,
+
         "mrp": 2499,
+
         "rating": 4.4
     }
 

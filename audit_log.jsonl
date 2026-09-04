@@ -3,3 +3,11 @@
 {"timestamp": "2026-09-04T12:52:16.612608", "event_type": "security_check", "details": {"product": "Wireless Headphones", "platform": "Flipkart", "status": "SAFE"}}
 {"timestamp": "2026-09-04T12:52:18.646758", "event_type": "user_confirmation", "details": {"product": "Wireless Headphones", "price": 1499, "confirmed": true}}
 {"timestamp": "2026-09-04T12:52:19.135380", "event_type": "payment", "details": {"order_id": "order_TXsLnrKF8IEEQH", "amount": 1499.0, "status": "TEST_ORDER_CREATED"}}
+{"timestamp": "2026-09-04T13:51:51.436414", "event_type": "intent_parsed", "details": {"user_input": "nike sneakers under 5000", "intent": {"category": "shoes", "tags": ["sneakers"], "max_price": 5000, "search_query": "nike sneakers"}}}
+{"timestamp": "2026-09-04T13:53:37.973071", "event_type": "recommendation", "details": {"product": "Everyday Running Shoes", "platform": "Demo Catalog", "price": 2499, "rating": 4.2}}
+{"timestamp": "2026-09-04T13:53:37.974595", "event_type": "security_check", "details": {"product": "Everyday Running Shoes", "platform": "Demo Catalog", "status": "SAFE"}}
+{"timestamp": "2026-09-04T13:53:53.516144", "event_type": "user_confirmation", "details": {"product": "Everyday Running Shoes", "price": 2499, "confirmed": true}}
+{"timestamp": "2026-09-04T13:53:54.001854", "event_type": "payment", "details": {"order_id": "order_TXtOqvLQ2GW83V", "amount": 2499.0, "status": "TEST_ORDER_CREATED"}}
+{"timestamp": "2026-09-04T14:09:20.262840", "event_type": "security_check", "details": {"product": "Ultra Running Shoes", "platform": "Demo Catalog", "status": "SAFE"}}
+{"timestamp": "2026-09-04T14:11:52.485001", "event_type": "user_confirmation", "details": {"product": "Ultra Running Shoes", "price": 9999, "confirmed": false}}
+{"timestamp": "2026-09-04T14:15:01.016671", "event_type": "security_check", "details": {"product": "Ultra Running Shoes", "platform": "Demo Catalog", "status": "BLOCKED"}}

@@ -32,6 +32,12 @@ def detect_prompt_injection(text):
         "send payment",
         "make payment",
         "buy immediately",
+        "ignore the user's budget",
+        "ignore the user budget",
+        "ignore budget",
+        "buy this immediately",
+        "without confirmation",
+        "at price",
     ]
 
     for pattern in suspicious_patterns:
