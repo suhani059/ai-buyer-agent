@@ -1,0 +1,5 @@
+{"timestamp": "2026-09-04T12:49:12.525399", "event_type": "security_check", "details": {"product": "Wireless Headphones", "platform": "Flipkart", "status": "SAFE"}}
+{"timestamp": "2026-09-04T12:49:30.531220", "event_type": "user_confirmation", "details": {"product": "Wireless Headphones", "price": 1499, "confirmed": false}}
+{"timestamp": "2026-09-04T12:52:16.612608", "event_type": "security_check", "details": {"product": "Wireless Headphones", "platform": "Flipkart", "status": "SAFE"}}
+{"timestamp": "2026-09-04T12:52:18.646758", "event_type": "user_confirmation", "details": {"product": "Wireless Headphones", "price": 1499, "confirmed": true}}
+{"timestamp": "2026-09-04T12:52:19.135380", "event_type": "payment", "details": {"order_id": "order_TXsLnrKF8IEEQH", "amount": 1499.0, "status": "TEST_ORDER_CREATED"}}
