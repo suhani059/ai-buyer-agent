@@ -42,6 +42,7 @@ from llm_intent import parse_intent
 from product_search import (
     search_on_online_products,
     apply_security,
+    filter_by_relevance,
     filter_by_budget,
     rank_products
 )
@@ -2075,6 +2076,22 @@ def search():
 
         })
 
+
+    # ========================================================
+    # RELEVANCE FILTER
+    # ========================================================
+    # Remove unrelated accessories from targeted searches.
+    products =filter_by_relevance(
+            products,
+            intent
+        )
+
+    if not products:
+        return jsonify({
+            "success": False,
+            "message":
+                "No relevant products found."
+        })
 
     # ========================================================
     # BUDGET
