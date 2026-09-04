@@ -6,14 +6,21 @@ from llm_intent import parse_intent
 from security import sanitize_product, validate_product
 
 
-# Load environment variables
+# =========================================================
+# LOAD ENVIRONMENT VARIABLES
+# =========================================================
+
 load_dotenv()
 
 API_KEY = os.getenv("QUICKCOMMERCE_API_KEY")
 
 API_URL = "https://api.quickcommerceapi.com/v1/search"
 
-# Platforms we want to search
+
+# =========================================================
+# PLATFORMS WE WANT TO SEARCH
+# =========================================================
+
 PLATFORMS = [
     "BlinkIt",
     "Flipkart",
@@ -22,9 +29,9 @@ PLATFORMS = [
 ]
 
 
-# ---------------------------------------------------------
+# =========================================================
 # SEARCH PRODUCTS ACROSS MULTIPLE PLATFORMS
-# ---------------------------------------------------------
+# =========================================================
 
 def search_on_online_products(query):
 
@@ -58,7 +65,13 @@ def search_on_online_products(query):
 
             data = response.json()
 
-            products = data.get("data", {}).get("products", [])
+            products = data.get(
+                "data",
+                {}
+            ).get(
+                "products",
+                []
+            )
 
             for product in products:
 
@@ -69,14 +82,16 @@ def search_on_online_products(query):
 
         except requests.exceptions.RequestException as e:
 
-            print(f"Error searching {platform}: {e}")
+            print(
+                f"Error searching {platform}: {e}"
+            )
 
     return all_products
 
 
-# ---------------------------------------------------------
+# =========================================================
 # SECURITY CHECK
-# ---------------------------------------------------------
+# =========================================================
 
 def apply_security(products):
 
@@ -100,9 +115,139 @@ def apply_security(products):
     return safe_products
 
 
-# ---------------------------------------------------------
+# =========================================================
+# FILTER PRODUCTS BY CATEGORY / RELEVANCE
+# =========================================================
+
+def filter_by_relevance(products, intent):
+
+    # Get category from detected intent
+    category = str(
+        intent.get("category", "")
+    ).lower()
+
+    # Get tags from detected intent
+    tags = [
+        str(tag).lower()
+        for tag in intent.get("tags", [])
+    ]
+
+    # Combine category and tags
+    search_terms = " ".join(
+        [category] + tags
+    ).lower()
+
+    # -----------------------------------------------------
+    # SHOE / FOOTWEAR SEARCH
+    # -----------------------------------------------------
+
+    if (
+        "shoe" in search_terms
+        or "shoes" in search_terms
+        or "footwear" in search_terms
+        or "running" in search_terms
+        or "sneaker" in search_terms
+    ):
+
+        # Keywords that indicate actual footwear
+        valid_keywords = [
+            "shoe",
+            "shoes",
+            "sneaker",
+            "sneakers",
+            "footwear",
+            "trainer",
+            "trainers"
+        ]
+
+        # Obvious irrelevant shoe accessories
+        blocked_keywords = [
+            "sock",
+            "socks",
+            "shoelace",
+            "shoelaces",
+            "shoe lace",
+            "shoe laces",
+            "lace",
+            "laces",
+            "insole",
+            "insoles",
+            "sole protector",
+            "shoe polish",
+            "polish",
+            "shoe cleaner",
+            "cleaner",
+            "shoe brush",
+            "brush",
+            "shoe bag",
+            "shoe cover",
+            "shoe covers",
+            "socks for",
+            "foot cream"
+        ]
+
+        relevant_products = []
+
+        for product in products:
+
+            # Product name
+            name = str(
+                product.get("name", "")
+            ).lower()
+
+            # Product description
+            description = str(
+                product.get("description", "")
+            ).lower()
+
+            # Product brand
+            brand = str(
+                product.get("brand", "")
+            ).lower()
+
+            # Combine searchable product information
+            text = (
+                name
+                + " "
+                + description
+                + " "
+                + brand
+            )
+
+            # -------------------------------------------------
+            # STEP 1: Remove obvious irrelevant products
+            # -------------------------------------------------
+
+            if any(
+                word in text
+                for word in blocked_keywords
+            ):
+                continue
+
+            # -------------------------------------------------
+            # STEP 2: Keep actual footwear
+            # -------------------------------------------------
+
+            if any(
+                word in text
+                for word in valid_keywords
+            ):
+                relevant_products.append(product)
+
+        return relevant_products
+
+    # -----------------------------------------------------
+    # DEFAULT
+    # -----------------------------------------------------
+
+    # For categories other than shoes,
+    # keep the original QuickCommerce results.
+    return products
+
+
+# =========================================================
 # FILTER PRODUCTS BY BUDGET
-# ---------------------------------------------------------
+# =========================================================
 
 def filter_by_budget(products, max_price):
 
@@ -123,11 +268,18 @@ def filter_by_budget(products, max_price):
             price = str(price)
 
             # Remove currency symbols and commas
-            price = price.replace("₹", "").replace(",", "").strip()
+            price = (
+                price
+                .replace("₹", "")
+                .replace(",", "")
+                .strip()
+            )
 
             price = float(price)
 
+            # Keep products within user's budget
             if price <= max_price:
+
                 filtered_products.append(product)
 
         except (ValueError, TypeError):
@@ -137,9 +289,9 @@ def filter_by_budget(products, max_price):
     return filtered_products
 
 
-# ---------------------------------------------------------
+# =========================================================
 # RANK PRODUCTS
-# ---------------------------------------------------------
+# =========================================================
 
 def rank_products(products):
 
@@ -148,62 +300,86 @@ def rank_products(products):
 
     def get_score(product):
 
-        # -------------------------
-        # Rating
-        # -------------------------
+        # -------------------------------------------------
+        # RATING
+        # -------------------------------------------------
 
         try:
-            rating = float(product.get("rating", 0))
+
+            rating = float(
+                product.get("rating", 0)
+            )
+
         except (ValueError, TypeError):
+
             rating = 0
 
 
-        # -------------------------
-        # Price / Discount
-        # -------------------------
+        # -------------------------------------------------
+        # MRP
+        # -------------------------------------------------
 
         try:
+
             mrp = float(
-                str(product.get("mrp", 0))
+                str(
+                    product.get("mrp", 0)
+                )
                 .replace("₹", "")
                 .replace(",", "")
             )
+
         except (ValueError, TypeError):
+
             mrp = 0
 
 
+        # -------------------------------------------------
+        # OFFER PRICE
+        # -------------------------------------------------
+
         try:
+
             offer_price = float(
-                str(product.get("offer_price", 0))
+                str(
+                    product.get("offer_price", 0)
+                )
                 .replace("₹", "")
                 .replace(",", "")
             )
+
         except (ValueError, TypeError):
+
             offer_price = 0
 
 
-        # Calculate discount percentage
+        # -------------------------------------------------
+        # DISCOUNT
+        # -------------------------------------------------
+
         discount = 0
 
         if mrp > 0 and offer_price > 0:
 
             discount = (
-                (mrp - offer_price) / mrp
+                (mrp - offer_price)
+                / mrp
             ) * 100
 
 
-        # -------------------------
-        # Availability
-        # -------------------------
+        # -------------------------------------------------
+        # AVAILABILITY
+        # -------------------------------------------------
 
         availability_score = 1 if product.get(
-            "available", True
+            "available",
+            True
         ) else 0
 
 
-        # -------------------------
-        # Final Score
-        # -------------------------
+        # -------------------------------------------------
+        # FINAL RANKING SCORE
+        # -------------------------------------------------
 
         score = (
             rating * 10
@@ -222,63 +398,93 @@ def rank_products(products):
     )
 
 
-# ---------------------------------------------------------
+# =========================================================
 # MAIN PROGRAM
-# ---------------------------------------------------------
+# =========================================================
 
 if __name__ == "__main__":
 
-    # Get user's request
+    # -----------------------------------------------------
+    # GET USER REQUEST
+    # -----------------------------------------------------
+
     user_request = input(
         "\n🛍️ What are you looking for? "
     )
 
 
-    # -------------------------
-    # STEP 1: Understand Intent
-    # -------------------------
+    # -----------------------------------------------------
+    # STEP 1: UNDERSTAND USER INTENT
+    # -----------------------------------------------------
 
-    intent = parse_intent(user_request)
+    intent = parse_intent(
+        user_request
+    )
 
-    print("\n🧠 Detected Intent:")
+    print(
+        "\n🧠 Detected Intent:"
+    )
+
     print(intent)
 
 
+    # Extract search query
     query = intent.get(
         "search_query",
         ""
     )
 
+    # Extract maximum budget
     max_price = intent.get(
         "max_price"
     )
 
 
-    # -------------------------
-    # STEP 2: Search Online
-    # -------------------------
+    # -----------------------------------------------------
+    # STEP 2: SEARCH ONLINE
+    # -----------------------------------------------------
 
-    products = search_on_online_products(query)
+    products = search_on_online_products(
+        query
+    )
 
     print(
-        f"\n🔎 Products found: {len(products)}"
+        f"\n🔎 Products found: "
+        f"{len(products)}"
     )
 
 
-    # -------------------------
-    # STEP 3: Security
-    # -------------------------
+    # -----------------------------------------------------
+    # STEP 3: SECURITY CHECK
+    # -----------------------------------------------------
 
-    products = apply_security(products)
+    products = apply_security(
+        products
+    )
 
     print(
-        f"🔐 Security check completed."
+        "\n🔐 Security check completed."
     )
 
 
-    # -------------------------
-    # STEP 4: Budget Filter
-    # -------------------------
+    # -----------------------------------------------------
+    # STEP 4: RELEVANCE FILTER
+    # -----------------------------------------------------
+
+    products = filter_by_relevance(
+        products,
+        intent
+    )
+
+    print(
+        f"🎯 Relevant products: "
+        f"{len(products)}"
+    )
+
+
+    # -----------------------------------------------------
+    # STEP 5: BUDGET FILTER
+    # -----------------------------------------------------
 
     products = filter_by_budget(
         products,
@@ -291,18 +497,22 @@ if __name__ == "__main__":
     )
 
 
-    # -------------------------
-    # STEP 5: Ranking
-    # -------------------------
+    # -----------------------------------------------------
+    # STEP 6: RANK PRODUCTS
+    # -----------------------------------------------------
 
-    products = rank_products(products)
+    products = rank_products(
+        products
+    )
 
 
-    # -------------------------
-    # STEP 6: Display Results
-    # -------------------------
+    # -----------------------------------------------------
+    # STEP 7: DISPLAY RESULTS
+    # -----------------------------------------------------
 
-    print("\n🏆 BEST PRODUCTS:\n")
+    print(
+        "\n🏆 BEST PRODUCTS:\n"
+    )
 
 
     for i, product in enumerate(
@@ -311,7 +521,8 @@ if __name__ == "__main__":
     ):
 
         print(
-            f"{i}. {product.get('name', 'Unknown')}"
+            f"{i}. "
+            f"{product.get('name', 'Unknown')}"
         )
 
         print(
